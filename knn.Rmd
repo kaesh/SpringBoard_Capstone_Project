@@ -1,0 +1,47 @@
+---
+title: "KNN model "
+output: html_document
+---
+
+
+```{r}
+
+ON = read.csv("OnlineNewsPopularity.csv")
+summary(ON)
+```
+
+divide data into training set and test set
+70% in training set and 30% in test set
+If you see that one attribute has a wide range of values, you will need to normalize your dataset, because this means that the distance will be dominated by this feature. 
+
+```{r}
+normalize <- function(x){
+  num <- x - min(x)
+  denom <- max(x) - min(x)
+  return (num/denom)
+}
+normalisedON <- as.data.frame(lapply(ON[2:61], normalize))
+
+set.seed(1234)
+ind<-sample(2,nrow(normalisedON),replace = TRUE, prob=c(0.7, 0.3))
+ON.training <- normalisedON[ind==1, 1:59]
+ON.test <- normalisedON[ind==2,1:59]
+
+ON.trainLabels <- normalisedON[ind == 1, 60]
+ON.testLabels <- normalisedON[ind==2, 60]
+
+
+head(ON.training)
+
+
+library(class)
+
+ONknnModel <- knn(train = ON.training, test = ON.test, cl = ON.trainLabels, k=3)
+
+head(ONknnModel)
+head(ON.testLabels)
+```
+
+
+
+
