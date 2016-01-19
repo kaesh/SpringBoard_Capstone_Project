@@ -1,0 +1,98 @@
+---
+title: "Visualisation"
+output: html_document
+---
+
+
+```{r}
+ON = read.csv("OnlineNewsPopularity.csv")
+
+set.seed(1234)
+ind<-sample(2,nrow(ON),replace = TRUE, prob=c(0.7, 0.3))
+trainds <- ON[ind==1, 1:61]
+testds <- ON[ind==2,1:61]
+
+```
+
+
+```{r, echo=FALSE}
+trainds$url <- NULL
+pairs(~. , data = trainds)
+
+library(ggplot2)
+
+plotcols = c("n_tokens_title", "n_tokens_content", "n_unique_tokens", "n_non_stop_words" , "non_stop_unique_tokens")
+
+ggpairs(smallds,
+    diag=list(continuous="density", discrete="bar"), axisLabels="show")
+
+ggplot(trainds ,aes( x =n_tokens_title , y = shares))+
+  geom_point(aes(color = shares))+
+  coord_cartesian()+
+  scale_color_gradient()+
+  theme_bw()
+
+trainds$weekday_is_sunday <- as.factor((trainds$weekday_is_sunday))
+ggplot(trainds ,aes( x =weekday_is_sunday , y = shares))+
+  geom_point(aes(color = shares))+
+  coord_cartesian()+
+  scale_color_gradient()+
+  theme_bw()
+#plotting graphs to see how the weekdays affect sharing.
+#the plots show that sharing was same across all days.
+
+myDataSet <-subset(trainds, select=c("n_tokens_title", "n_non_stop_words","weekday_is_monday","weekday_is_tuesday","weekday_is_wednesday","weekday_is_thursday","weekday_is_friday","weekday_is_saturday","weekday_is_sunday","is_weekend","shares"))
+mydata<-trainds
+library(reshape)
+mdata <- melt(myDataSet,id=c("n_tokens_title","n_non_stop_words","shares"))
+
+ggplot(data=mdata, aes(x=variable, y=shares)) +
+  geom_bar(stat="identity", fill="steelblue")+
+  theme_minimal()
+
+
+myDataSet_channels <-subset(trainds, select=c("data_channel_is_lifestyle", "data_channel_is_entertainment","data_channel_is_bus","data_channel_is_socmed","data_channel_is_tech","data_channel_is_world","shares"))
+
+myDataSet_Lifechannels <-subset(trainds, select=c("data_channel_is_lifestyle", "shares"))
+
+myDataSet_enterchannels <-subset(trainds, select=c("data_channel_is_entertainment", "shares"))
+
+myDataSet_buschannels <-subset(trainds, select=c("data_channel_is_bus", "shares"))
+
+
+myDataSet_channelsmelt <- melt(myDataSet_channels,id=c("shares"))
+
+#plotting graphs to see how the type of news affects sharing.
+#the plots show that sharing was same across all type of news
+
+ggplot(data=myDataSet_channelsmelt, aes(x=variable, y=shares)) +
+  geom_bar(stat="identity", fill="steelblue")+
+  theme_minimal()
+
+#plotting graphs to see how the number of links and self references have sharing patterns
+
+ggplot(trainds ,aes( x = num_self_hrefs , y = shares))+
+  geom_point(aes(color = shares))+
+  coord_cartesian()+
+  scale_color_gradient()
+
+ggplot(trainds ,aes( x = num_hrefs , y = shares))+
+  geom_point(aes(color = shares))+
+  coord_cartesian()+
+  scale_color_gradient()+
+  theme_bw()
+
+#
+
+pairs( shares ~ num_imgs + num_videos+ n_non_stop_words+ n_non_stop_unique_tokens , data = trainds)
+
+```
+
+#Number of shares increases as the number of num_hrefs increases.
+
+#Similiar observation for the number of self references. 
+#Concluding that the lesser the hyperlinks the more the sharing of online news.
+
+#Graph between the number of images present in online news and number of videos in the online news shows us that the mroe the images and the more the videos lesses the sharing.
+
+
