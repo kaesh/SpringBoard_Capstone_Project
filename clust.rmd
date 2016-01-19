@@ -1,0 +1,74 @@
+---
+title: "clust "
+output: html_document
+---
+
+```{r}
+
+ON = read.csv("OnlineNewsPopularity.csv")
+summary(ON)
+```
+
+divide data into training set and test set
+70% in training set and 30% in test set
+If you see that one attribute has a wide range of values, you will need to normalize your dataset, because this means that the distance will be dominated by this feature. 
+
+```{r}
+
+set.seed(1234)
+ind<-sample(2,nrow(ON),replace = TRUE, prob=c(0.7, 0.3))
+trainds <- ON[ind==1, 1:61]
+testds <- ON[ind==2,1:61]
+
+trainds$url <- factor(trainds$url)
+
+head(trainds)
+trainds$is_weekend = NULL
+
+```
+
+
+```{r}
+trainds$url = NULL
+trainds = unique(trainds)
+
+# Compute distances
+distances = dist(trainds[2:59], method = "euclidean")
+
+# Hierarchical clustering
+clusterNews = hclust(distances, method = "ward.D2") 
+
+# Plot the dendrogram
+plot(clusterNews)
+
+rect.hclust(clusterGroups , k = 3 , border = "red" )
+
+# Assign points to clusters
+clusterGroups = cutree(clusterNews, k = 3)
+
+
+
+#Now let's figure out what the clusters are like.
+
+# Let's use the tapply function to compute the percentage of clusters in each channel
+
+tapply(trainds$data_channel_is_lifestyle, clusterGroups, mean)
+tapply(trainds$data_channel_is_entertainment, clusterGroups, mean)
+tapply(trainds$data_channel_is_bus, clusterGroups, mean)
+tapply(trainds$data_channel_is_socmed, clusterGroups, mean)
+tapply(trainds$data_channel_is_tech, clusterGroups, mean)
+tapply(trainds$data_channel_is_world, clusterGroups, mean)
+share_cluster_groups <-tapply(trainds$shares, clusterGroups, mean)
+
+max(share_cluster_groups)
+
+#calculating k-means clustering
+
+setseed(1)
+KMC = kmeans(trainds[2:59] , centers  = 3  )
+subset(ON, url =="http://mashable.com/2013/07/16/man-of-steel-alternate-ending/")
+subset(ON, url == "http://mashable.com/2013/07/03/low-cost-iphone/")
+
+
+
+```
