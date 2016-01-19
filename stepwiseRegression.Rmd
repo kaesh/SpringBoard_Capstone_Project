@@ -1,0 +1,78 @@
+---
+title: "stepwiseRegression"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+
+```{r}
+ON = read.csv("OnlineNewsPopularity.csv")
+
+```
+
+```{r, echo=FALSE}
+set.seed(1234)
+ind<-sample(2,nrow(ON),replace = TRUE, prob=c(0.7, 0.3))
+trainds <- ON[ind==1, 1:61]
+testds <- ON[ind==2,1:61]
+
+url <- factor(ON$url)
+trainds$url<- NULL
+head(trainds)
+
+```
+
+Regression - backward , forward n stepwise
+
+```{r}
+model1 <- step(lm(shares ~. , data = trainds ),direction = "backward")
+
+summary(model1)
+
+model2 <- step(lm(shares ~ 1 ,data  = trainds), direction = "forward",scope = ~n_tokens_title+n_tokens_content +  
+                    num_hrefs+
+                    num_self_hrefs+ 
+                    average_token_length+
+                    data_channel_is_lifestyle+  
+                    data_channel_is_entertainment +
+                    kw_min_max+kw_min_avg+kw_max_avg+
+                    kw_avg_avg+self_reference_min_shares+
+                global_subjectivity+avg_negative_polarity+abs_title_sentiment_polarity +title_subjectivity               
++title_sentiment_polarity +min_negative_polarity            
++max_negative_polarity            
++abs_title_subjectivity +rate_positive_words              
++rate_negative_words              
++avg_positive_polarity            
++min_positive_polarity            
++max_positive_polarity +global_sentiment_polarity        
++global_rate_positive_words       
++global_rate_negative_words +kw_avg_min      +kw_max_max        +data_channel_is_bus  +data_channel_is_socmed     +data_channel_is_tech   +data_channel_is_world 
++num_keywords  +num_imgs  +num_videos  +n_non_stop_words          +n_non_stop_unique_tokens  
++kw_avg_max   +self_reference_max_shares        
++self_reference_avg_sharess       
++weekday_is_monday                
++weekday_is_tuesday               
++weekday_is_wednesday             
++weekday_is_thursday              
++weekday_is_friday                
++weekday_is_saturday              
++weekday_is_sunday                
++is_weekend                       
++LDA_00                           
++LDA_01                           
++LDA_02                           
++LDA_03                           
++LDA_04)
+
+
+```
+
+The backward regression shows a high value of AIC
+
+starts with AIC=519356.7 and goes till AIC is 519320
+
+Forward regression also shows similar figures where min AIC is 519330
+
+
+
