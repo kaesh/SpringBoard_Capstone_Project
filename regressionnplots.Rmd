@@ -1,0 +1,141 @@
+---
+title: "Regression n Plots "
+output: html_document
+---
+
+
+```{r}
+
+ON = read.csv("OnlineNewsPopularity.csv")
+
+```
+
+divide data into training set and test set
+70% in training set and 30% in test set
+If you see that one attribute has a wide range of values, you will need to normalize your dataset, because this means that the distance will be dominated by this feature. 
+
+```{r}
+
+
+
+set.seed(1234)
+ind<-sample(2,nrow(ON),replace = TRUE, prob=c(0.7, 0.3))
+trainds <- ON[ind==1, 1:61]
+testds <- ON[ind==2,1:61]
+
+url <- factor(ON$url)
+
+head(trainds)
+
+```
+Creating plots
+
+```{r, echo=FALSE}
+
+model1 <- lm(shares ~.-url , data = trainds )
+summary(model1)
+predict(model1, data = testds)
+
+plot(model1)
+
+```
+
+Creating a better model by removing the insignificant variables
+significant Varables are timedelta +
+n_tokens_title+n_tokens_content, num_hrefs, num_self_hrefs, average_token_length, data_channel_is_lifestyle, data_channel_is_entertainment , kw_min_max, kw_min_avg+kw_max_avg, kw_avg_avg , self_reference_min_shares, 
+global_subjectivity , avg_negative_polarity
+
+```{r}
+model2<- lm(shares ~.-url-abs_title_sentiment_polarity -title_subjectivity               
+-title_sentiment_polarity -min_negative_polarity            
+-max_negative_polarity            
+-abs_title_subjectivity -rate_positive_words              
+-rate_negative_words              
+-avg_positive_polarity            
+-min_positive_polarity            
+-max_positive_polarity -global_sentiment_polarity        
+-global_rate_positive_words       
+-global_rate_negative_words -kw_avg_min      -kw_max_max        -data_channel_is_bus  -data_channel_is_socmed     -data_channel_is_tech   -data_channel_is_world 
+-num_keywords  -num_imgs  -num_videos  -n_non_stop_words          -n_non_stop_unique_tokens  
+-kw_avg_max   -self_reference_max_shares        
+-self_reference_avg_sharess       
+-weekday_is_monday                
+-weekday_is_tuesday               
+-weekday_is_wednesday             
+-weekday_is_thursday              
+-weekday_is_friday                
+-weekday_is_saturday              
+-weekday_is_sunday                
+-is_weekend                       
+-LDA_00                           
+-LDA_01                           
+-LDA_02                           
+-LDA_03                           
+-LDA_04 , data = trainds )
+summary(model2)
+
+model2_pos<- lm(shares ~ timedelta +
+                     n_tokens_title+n_tokens_content +  
+                    num_hrefs+
+                    num_self_hrefs+ 
+                    average_token_length+
+                    data_channel_is_lifestyle+  
+                    data_channel_is_entertainment +
+                    kw_min_max+kw_min_avg+kw_max_avg+
+                    kw_avg_avg+self_reference_min_shares+
+                    global_subjectivity+avg_negative_polarity,
+            data = trainds)
+summary(model2_pos)
+
+
+predict(model2_pos, data = testds)
+
+plot(model2_pos)
+
+```
+
+Residual standard error: 11480 on 27756 degrees of freedom
+Multiple R-squared:  0.02295,	Adjusted R-squared:  0.02232 
+F-statistic: 36.22 on 18 and 27756 DF,  p-value: < 2.2e-16
+
+whereas model2_pos gives us 
+Residual standard error: 11480 on 27759 degrees of freedom
+Multiple R-squared:  0.02288,	Adjusted R-squared:  0.02235 
+F-statistic: 43.32 on 15 and 27759 DF,  p-value: < 2.2e-16
+
+
+
+Let's plot some graphs 
+
+```{r}
+library(ggvis)
+trainds %>% ggvis(~num_hrefs, ~shares) %>% layer_points()
+trainds %>% ggvis(~num_hrefs,~num_self_hrefs ) %>% layer_bars()
+trainds %>% ggvis(~num_self_hrefs,~shares) %>% layer_points()
+trainds %>% ggvis(~average_token_length,~shares) %>% layer_points()
+trainds %>% ggvis(~data_channel_is_lifestyle,~shares) %>% layer_points()
+trainds %>% ggvis(~data_channel_is_entertainment,~shares) %>% layer_points()
+trainds %>% ggvis(~kw_min_max,~shares,fill := "blue"
+                  ) %>% layer_points() %>% layer_smooths()
+trainds %>% ggvis(~kw_min_avg,~shares
+                  ) %>% layer_points() %>% layer_smooths()
+trainds %>% ggvis(~kw_max_avg,~shares
+                  ) %>% layer_points()
+trainds %>% ggvis(~self_reference_min_shares,~shares
+                  ) %>% layer_points()
+trainds %>% ggvis(~global_subjectivity,~shares
+                  ) %>% layer_points()
+trainds %>% ggvis(~avg_negative_polarity,~shares
+                  ) %>% layer_points()
+
+trainds$url<- NULL
+trainds$timedelta <- NULL
+result<-sapply(trainds[-59], function(x){cor(trainds$shares,x)})
+
+
+```
+
+There is no strong correlation between the shares and other variables of the online news data.
+hence regression analysis does not come up with any good model.
+
+
